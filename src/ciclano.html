@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>NodeJS WebSocket Client Ciclano</title>
+  </head>
+  <body>
+    <h1>Websocket Client of Ciclano</h1>
+    <script>
+      const userName = 'Ciclano';
+      const auctionName = 'SAPATO';
+      const messages = [`R$ 24.500,00`, 'R$ 32.500,00', 'R$ 54.500,00'];
+
+      const ws = new WebSocket(`ws://localhost:8080/ws?auctionName=${auctionName}`);
+
+      ws.addEventListener("open", (event) =>
+      {
+        console.log("Você entrou no chat.");
+
+        setInterval(() => 
+        {
+          ws.send(JSON.stringify({ auctionName, userName, message: messages[Math.floor(Math.random() * messages.length)] }));
+        }, 
+        (Math.random() * 5001) + 2000);
+      });
+      
+      ws.addEventListener('message', function (event) 
+      {
+          console.log(event.data);
+      });
+    </script>
+  </body>
+</html>

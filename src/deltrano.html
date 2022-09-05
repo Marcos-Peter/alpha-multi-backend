@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>NodeJS WebSocket Client Deltrano</title>
+  </head>
+  <body>
+    <h1>Websocket Client of Deltrano</h1>
+    <script>
+      const userName = 'Deltrano';
+      const auctionName = 'SAPATO';
+      const messages = [`R$ 12.500,00`, 'R$ 1.300,00', 'R$ 20.600,00'];
+
+      const ws = new WebSocket(`ws://localhost:8080/ws?auctionName=${auctionName}&userName=${userName}`);
+
+      ws.addEventListener("open", () =>
+      {
+        console.log("Você entrou no chat.");
+
+        setInterval(() => 
+        {  
+          ws.send(JSON.stringify({ auctionName, userName, message: messages[Math.floor(Math.random() * messages.length)] }));
+        }, 
+        (Math.random() * 5001) + 2000);
+      });
+      
+      ws.addEventListener('message', function (event) 
+      {
+          console.log(event.data);
+      });
+    </script>
+  </body>
+</html>
