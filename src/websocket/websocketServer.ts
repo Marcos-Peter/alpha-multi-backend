@@ -36,19 +36,9 @@ class WebSocketServer
             {
                 this.broadCast(JSON.parse(data as any) as ClientMessage);
             });
-
-            ws.on('close', () =>
-            {
-                console.log('Client has disconnected.');
-            });
-
-            ws.on('error', (err) =>
-            {
-                console.log(`Error occurred: ${err}`);
-            });
         });
 
-        console.log(`Websocket server is running on port ${this.port}`);
+        console.log(`Alpha Multi Websocket server is running on port ${this.port}`);
     }
 
     private updateAuctionRooms (params: URLSearchParams, ws: WebSocket)
