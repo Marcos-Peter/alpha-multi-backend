@@ -10,7 +10,7 @@ class UsersDAO extends DAO
         const sql = `SELECT userID,
                             userName,
                             password
-                    FROM users WHERE userID = ?`;
+                    FROM users WHERE userID = $1`;
 
         return this.executeSQL<UserDTO>(sql, [ userID ]);
     }
@@ -20,7 +20,7 @@ class UsersDAO extends DAO
         const sql = `SELECT userID,
                             userName,
                             password
-                    FROM users WHERE userName = ?`;
+                    FROM users WHERE userName = $1`;
 
         return this.executeSQL<UserDTO>(sql, [ userName ]);
     }
@@ -36,7 +36,7 @@ class UsersDAO extends DAO
 
     createUser (user: UserDTO)
     {
-        const sql = 'INSERT INTO users VALUES (?, ?, ?) RETURNING userID, userName';
+        const sql = 'INSERT INTO users (userID, userName, password) VALUES ($1, $2, $3) RETURNING userID, userName';
 
         return this.executeSQL<UserDTO>(sql,
             [
@@ -48,7 +48,7 @@ class UsersDAO extends DAO
 
     updateUserPassword (userID: string, newPassword: string)
     {
-        const sql = 'UPDATE users SET password = ? WHERE userID = ? RETURNING userID, userName';
+        const sql = 'UPDATE users SET password = $1 WHERE userID = $2 RETURNING userID, userName';
 
         return this.executeSQL<UserDTO>(sql,
             [
