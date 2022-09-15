@@ -8,12 +8,7 @@ class DAO
         {
             try
             {
-                resolve(dbInstance(sql, parameters).then((res) =>
-                {
-                    const result = res;
-
-                    return result;
-                }));
+                resolve(dbInstance(sql, parameters).then((res) => res));
             }
             catch (err)
             {

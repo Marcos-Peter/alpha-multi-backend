@@ -2,12 +2,12 @@ import { Pool } from 'pg';
 
 async function dbInstance (query: string, parameters: any[])
 {
-    const pool = new Pool({ connectionString: 'postgresql://postgres:1998@localhost:5432/alpha-multi?schema=public' });
+    const pool = new Pool({ connectionString: process.env.POSTGRES });
     const client = await pool.connect();
 
     const req = await client.query(query, parameters);
     client.release();
-    pool.end();
+    await pool.end();
 
     return req.rows;
 }

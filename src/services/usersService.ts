@@ -9,19 +9,19 @@ import { usersPropertiesValidator } from '../validators/usersPropertiesValidator
 
 class UsersService extends Service
 {
-    async getUserByID (userID: string)
+    async getUserByID (userid: string)
     {
-        const result = await usersDAO.getUserByID(userID);
+        const result = await usersDAO.getUserByID(userid);
 
-        return this.serviceResponseBuilder(result, `User ${userID} does not exist.`);
+        return this.serviceResponseBuilder(result, `User ${userid} does not exist.`);
     }
 
-    async getUserByUserName (userName: string)
+    async getUserByUserName (username: string)
     {
-        usersPropertiesValidator.validateUserName(userName);
-        const result = await usersDAO.getUserByUserName(userName);
+        usersPropertiesValidator.validateUserName(username);
+        const result = await usersDAO.getUserByUserName(username);
 
-        return this.serviceResponseBuilder(result, `User ${userName} does not exist.`);
+        return this.serviceResponseBuilder(result, `User ${username} does not exist.`);
     }
 
     async getAllUsers ()
@@ -34,42 +34,42 @@ class UsersService extends Service
     async createUser (user: UserDTO)
     {
         usersPropertiesValidator.validateAll(user);
-        const existentUser = await usersDAO.getUserByUserName(user.userName);
+        const existentUser = await usersDAO.getUserByUserName(user.username);
 
         if (existentUser.length > 0) throw new UnauthorizedError('User already exists in database.');
 
         const result = await usersDAO.createUser(user);
 
-        return this.serviceResponseBuilder(result, `Error when inserting user ${user.userName} in database.`, 201);
+        return this.serviceResponseBuilder(result, `Error when inserting user ${user.username} in database.`, 201);
     }
 
-    async changePassword (user: { userName: string, currentPassword: string, newPassword: string })
+    async changePassword (user: { username: string, currentPassword: string, newPassword: string })
     {
-        usersPropertiesValidator.validateUserName(user.userName);
+        usersPropertiesValidator.validateUserName(user.username);
         usersPropertiesValidator.validatePassword(user.currentPassword);
         usersPropertiesValidator.validatePassword(user.newPassword);
 
-        const { userID, password } = (await this.getUserByUserName(user.userName)).data as UserDTO;
+        const { userid, password } = (await this.getUserByUserName(user.username)).data as UserDTO;
 
         if (!passwordCryptography.comparePassword(user.currentPassword, password)) throw new UnauthorizedError('Password incorrect.');
 
-        const result = await usersDAO.updateUserPassword(userID as string, user.newPassword);
+        const result = await usersDAO.updateUserPassword(userid as string, user.newPassword);
 
-        return this.serviceResponseBuilder(result, `Error when updating ${user.userName}'s password.`);
+        return this.serviceResponseBuilder(result, `Error when updating ${user.username}'s password.`);
     }
 
     async authenticateUser (param: { req: Request, res: Response, user: UserDTO })
     {
         usersPropertiesValidator.validateAll(param.user);
-        const { userName, password } = (await this.getUserByUserName(param.user.userName)).data as UserDTO;
+        const { username, password } = (await this.getUserByUserName(param.user.username)).data as UserDTO;
 
         if (!passwordCryptography.comparePassword(param.user.password, password)) throw new UnauthorizedError('Password incorrect.');
 
-        const token = authToken.generateToken(userName);
+        const token = authToken.generateToken(username);
         // TODO change to secure true
         param.res.cookie('bearer', token, { secure: false, sameSite: true, httpOnly: true, maxAge: authToken.tokenExpirationTime * 1000 });
 
-        return this.serviceResponseBuilder([ { userName } ], '');
+        return this.serviceResponseBuilder([ { username } ], '');
     }
 
     async checkIfUserIsAuthenticated (param: { req: Request, res: Response })

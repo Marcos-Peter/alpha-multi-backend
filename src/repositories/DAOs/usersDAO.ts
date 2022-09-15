@@ -5,30 +5,30 @@ import { v4 as uuiv4 } from 'uuid';
 
 class UsersDAO extends DAO
 {
-    getUserByID (userID: string)
+    getUserByID (userid: string)
     {
-        const sql = `SELECT userID,
-                            userName,
+        const sql = `SELECT userid,
+                            username,
                             password
-                    FROM users WHERE userID = $1`;
+                    FROM users WHERE userid = $1`;
 
-        return this.executeSQL<UserDTO>(sql, [ userID ]);
+        return this.executeSQL<UserDTO>(sql, [ userid ]);
     }
 
-    getUserByUserName (userName: string)
+    getUserByUserName (username: string)
     {
-        const sql = `SELECT userID,
-                            userName,
+        const sql = `SELECT userid,
+                            username,
                             password
-                    FROM users WHERE userName = $1`;
+                    FROM users WHERE username = $1`;
 
-        return this.executeSQL<UserDTO>(sql, [ userName ]);
+        return this.executeSQL<UserDTO>(sql, [ username ]);
     }
 
     getAllUsers ()
     {
-        const sql = `SELECT userID,
-                            userName
+        const sql = `SELECT userid,
+                            username
                     FROM users`;
 
         return this.executeSQL<UserDTO>(sql, []);
@@ -36,24 +36,24 @@ class UsersDAO extends DAO
 
     createUser (user: UserDTO)
     {
-        const sql = 'INSERT INTO users (userID, userName, password) VALUES ($1, $2, $3) RETURNING userID, userName';
+        const sql = 'INSERT INTO users (userid, username, password) VALUES ($1, $2, $3) RETURNING userid, username';
 
         return this.executeSQL<UserDTO>(sql,
             [
                 uuiv4(),
-                user.userName,
+                user.username,
                 passwordCryptography.encryptPassword(user.password)
             ]);
     }
 
-    updateUserPassword (userID: string, newPassword: string)
+    updateUserPassword (userid: string, newPassword: string)
     {
-        const sql = 'UPDATE users SET password = $1 WHERE userID = $2 RETURNING userID, userName';
+        const sql = 'UPDATE users SET password = $1 WHERE userid = $2 RETURNING userid, username';
 
         return this.executeSQL<UserDTO>(sql,
             [
                 passwordCryptography.encryptPassword(newPassword),
-                userID
+                userid
             ]);
     }
 }

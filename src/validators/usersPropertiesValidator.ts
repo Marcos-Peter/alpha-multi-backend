@@ -15,14 +15,14 @@ class UsersPropertiesValidator extends PropertiesValidator
 
     validateAll (user: UserDTO)
     {
-        const params = [ user.userName, user.password ];
+        const params = [ user.username, user.password ];
 
         this.validateAllProperties(this.allValidators, params);
     }
 
-    validateUserName (userName: string)
+    validateUserName (username: string)
     {
-        if (!userName || !this.nameRegex.test(userName))
+        if (!username || !this.nameRegex.test(username))
         {
             throw new ValidationError(
                 'Nome do usuário deve ser de 8 a 20 caracteres utilizando apenas letras, dígitos, underscore ou ponto.');

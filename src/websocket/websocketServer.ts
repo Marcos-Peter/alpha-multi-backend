@@ -3,7 +3,7 @@ import { Server, WebSocket } from 'ws';
 interface ClientMessage
 {
     auctionName: string;
-    userName: string;
+    username: string;
     message: string;
 }
 
@@ -57,7 +57,7 @@ class WebSocketServer
 
     private broadCast (clientMessage: ClientMessage)
     {
-        for (const client of this.auctionRooms[clientMessage.auctionName]) client.send(`${clientMessage.userName} deu um lance de ${clientMessage.message}`);
+        for (const client of this.auctionRooms[clientMessage.auctionName]) client.send(`${clientMessage.username} deu um lance de ${clientMessage.message}`);
     }
 }
 

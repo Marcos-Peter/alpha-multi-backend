@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/pg": "^8.6.5",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -29,6 +28,7 @@
     "@types/express": "^4.17.13",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/node": "^18.0.0",
+    "@types/pg": "^8.6.5",
     "@types/sqlite3": "^3.1.8",
     "@types/uuid": "^8.3.4",
     "@types/ws": "^8.5.3",

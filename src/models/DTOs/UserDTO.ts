@@ -1,7 +1,7 @@
 interface UserDTO
 {
-  userID?: string;
-  userName: string;
+  userid?: string;
+  username: string;
   password: string;
 }
 
