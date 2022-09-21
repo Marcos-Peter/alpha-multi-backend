@@ -25,7 +25,7 @@ class AuctionsDAO extends DAO
     {
         const sql = `SELECT *
                     FROM auctions`;
-                    
+
         return this.executeSQL<AuctionDTO>(sql, []);
     }
 
