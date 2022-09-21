@@ -4,7 +4,7 @@ import { ValidationError } from '../errors/ValidationError';
 
 class UsersPropertiesValidator extends PropertiesValidator
 {
-    private readonly nameRegex = /^(?=.{8,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/;
+    private readonly nameRegex = /^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]$/;
     private readonly passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%¨&*?])[A-Za-z\d!@#$%¨&*?]{8,10}$/;
 
     private readonly allValidators =
