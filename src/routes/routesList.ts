@@ -14,6 +14,7 @@ class Routes
         app.use('/logout', this.getLogoutRoutes());
 
         app.use('/allAuctions', this.getAllAuctions());
+        app.use('/getAuction', this.getAuction());
         app.use('/createAuction', this.createAuction());
         app.use('/updateAuction', this.updateAuction());
         app.use('/deleteAuction', this.deleteAuction());
@@ -70,6 +71,15 @@ class Routes
         const getAllAuctionsRoute = express.Router();
 
         getAllAuctionsRoute.get('/', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.getAllAuctions.bind(auctionsController));
+
+        return getAllAuctionsRoute;
+    }
+
+    private getAuction ()
+    {
+        const getAllAuctionsRoute = express.Router();
+
+        getAllAuctionsRoute.get('/:id', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.getAuctionByID.bind(auctionsController));
 
         return getAllAuctionsRoute;
     }

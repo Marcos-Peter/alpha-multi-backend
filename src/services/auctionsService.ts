@@ -28,9 +28,8 @@ class AuctionsService extends Service
     async getAllAuctions ()
     {
         const result = await auctionsDAO.getAllAuctions();
-        if (typeof result === "object"){
-            return this.serviceResponseBuilder([result], 'There are no auctions in database.');
-        }
+        if (typeof result === 'object') return this.serviceResponseBuilder([ result ], 'There are no auctions in database.');
+
         return this.serviceResponseBuilder(result, 'There are no auctions in database.');
     }
 
