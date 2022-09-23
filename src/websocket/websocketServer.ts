@@ -1,16 +1,24 @@
 import { Server, WebSocket } from 'ws';
+import { AuctionDTO } from '../models/DTOs/AuctionDTO';
+import { RedisConnection } from '../redis/RedisConnection';
 import { auctionsService } from '../services/auctionsService';
 
 interface ClientMessage
 {
-    auctionName: string;
+    auctionID: string;
     username: string;
     message: string;
 }
 
+interface AuctionData
+{
+    chatLog: string[];
+    auctionClients: WebSocket[];
+}
+
 interface AuctionRoom
 {
-    [auctionName: string]: WebSocket[];
+    [auctionID: string]: AuctionData;
 }
 
 class WebSocketServer
@@ -22,6 +30,7 @@ class WebSocketServer
     constructor (port: number)
     {
         this.port = port;
+        RedisConnection.redisConn.connect();
     }
 
     init ()
@@ -31,9 +40,9 @@ class WebSocketServer
         this.ws.on('connection', async (ws, req) =>
         {
             const url = new URL(req.url as string, `http://${req.headers.host}`);
-            const auctionName = url.searchParams.get('auctionName') as string;
+            const auctionID = url.searchParams.get('auctionID') as string;
 
-            const isOpened = await this.isAuctionOpened(auctionName);
+            const isOpened = await this.isAuctionOpened(auctionID);
 
             if (!isOpened)
             {
@@ -42,13 +51,13 @@ class WebSocketServer
                 return;
             }
 
-            this.updateAuctionRooms(auctionName, ws);
+            this.updateAuctionRooms(auctionID, ws);
 
             ws.on('message', async (data) =>
             {
                 const message = JSON.parse(data as any) as ClientMessage;
 
-                const isClosed = await this.isAuctionClosed(message.auctionName);
+                const isClosed = await this.isAuctionClosed(message.auctionID);
 
                 if (isClosed)
                 {
@@ -64,53 +73,63 @@ class WebSocketServer
         console.log(`Alpha Multi Websocket server is running on port ${this.port}`);
     }
 
-    private async isAuctionOpened (auctionName: string)
+    private async isAuctionOpened (auctionID: string)
     {
         let isOpened = false;
 
         try
         {
-            isOpened = (await auctionsService.isAuctionOpened(auctionName)).data as boolean;
+            const existentAuction = (await auctionsService.getAuctionByID(auctionID)).data as AuctionDTO;
+            isOpened = (await auctionsService.isAuctionOpened(existentAuction.name)).data as string === 'true';
         }
         catch (error)
         {
-            console.log(`Error when checking if auction ${auctionName} is opened: ${error}`);
+            console.log(`Error when checking if auction ${auctionID} is opened: ${error}`);
         }
 
         return isOpened;
     }
 
-    private async isAuctionClosed (auctionName: string)
+    private async isAuctionClosed (auctionID: string)
     {
         let isClosed = false;
 
         try
         {
-            isClosed = (await auctionsService.isAuctionClosed(auctionName)).data as boolean;
+            const existentAuction = (await auctionsService.getAuctionByID(auctionID)).data as AuctionDTO;
+            isClosed = (await auctionsService.isAuctionClosed(existentAuction.name)).data as string === 'true';
         }
         catch (error)
         {
-            console.log(`Error when checking if auction ${auctionName} is closed: ${error}`);
+            console.log(`Error when checking if auction ${auctionID} is closed: ${error}`);
         }
 
         return isClosed;
     }
 
-    private updateAuctionRooms (auctionName: string, ws: WebSocket)
+    private updateAuctionRooms (auctionID: string, ws: WebSocket)
     {
-        if (Object.prototype.hasOwnProperty.call(this.auctionRooms, auctionName))
+        if (Object.prototype.hasOwnProperty.call(this.auctionRooms, auctionID))
         {
-            this.auctionRooms[auctionName].push(ws);
+            this.auctionRooms[auctionID].auctionClients.push(ws);
 
             return;
         }
 
-        this.auctionRooms[auctionName] = [ ws ];
+        const auctionData = { chatLog: [], auctionClients: [ ws ] } as AuctionData;
+        this.auctionRooms[auctionID] = auctionData;
     }
 
     private broadCast (clientMessage: ClientMessage)
     {
-        for (const client of this.auctionRooms[clientMessage.auctionName]) client.send(`${clientMessage.username} deu um lance de ${clientMessage.message}`);
+        const message = `${clientMessage.username} deu um lance de ${clientMessage.message}`;
+
+        this.auctionRooms[clientMessage.auctionID].chatLog.push(message);
+        const chatLog = this.auctionRooms[clientMessage.auctionID].chatLog.toString();
+
+        RedisConnection.redisConn.set(clientMessage.auctionID, chatLog);
+
+        for (const client of this.auctionRooms[clientMessage.auctionID].auctionClients) client.send(message);
     }
 }
 

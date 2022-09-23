@@ -117,7 +117,7 @@ class Routes
     {
         const closeAuctionRoute = express.Router();
 
-        closeAuctionRoute.put('/', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.closeAuction.bind(auctionsController));
+        closeAuctionRoute.put('/:name', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.closeAuction.bind(auctionsController));
 
         return closeAuctionRoute;
     }

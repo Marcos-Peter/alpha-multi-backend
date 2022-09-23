@@ -1,5 +1,6 @@
 /* eslint-disable newline-per-chained-call */
 import { AuctionDTO } from '../models/DTOs/AuctionDTO';
+import { RedisConnection } from '../redis/RedisConnection';
 import { Service } from './Service';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { UserDTO } from '../models/DTOs/UserDTO';
@@ -98,22 +99,42 @@ class AuctionsService extends Service
         return this.serviceResponseBuilder(result, `Error when deleting auction ${name} in database.`);
     }
 
-    async closeAuction (param: { auctionName: string, winnerName: string, winnerPrice: string })
+    async closeAuction (auctionName: string)
     {
-        auctionsPropertiesValidator.validateAuctionName(param.auctionName);
-        auctionsPropertiesValidator.validateAuctionWinnerPrice(param.winnerPrice);
+        auctionsPropertiesValidator.validateAuctionName(auctionName);
 
-        const winner = (await usersService.getUserByUserName(param.winnerName)).data as UserDTO;
-        const existentAuction = (await this.getAuctionByName(param.auctionName)).data as AuctionDTO;
+        const existentAuction = (await this.getAuctionByName(auctionName)).data as AuctionDTO;
 
         if (existentAuction.winner_id) throw new UnauthorizedError('Closed auction cannot be closed again.');
 
         const now = getDateWithoutTimeZone();
         if (now < getDateWithoutTimeZone(existentAuction.close_at)) throw new UnauthorizedError('Auctions can be closed only after time has passed due close_at date.');
 
-        const result = await auctionsDAO.closeAuction(param.auctionName, winner.userid as string, param.winnerPrice);
+        const winnerData = await this.getWinnerData(existentAuction.auction_id as string);
 
-        return this.serviceResponseBuilder(result, `Error when closing auction ${param.auctionName} in database.`);
+        const result = await auctionsDAO.closeAuction(auctionName, winnerData?.winnerID as string, winnerData?.winnerPrice as string);
+
+        return this.serviceResponseBuilder(result, `Error when closing auction ${auctionName} in database.`);
+    }
+
+    private async getWinnerData (auctionID: string)
+    {
+        const lastOffer = (await RedisConnection.redisConn.get(auctionID))?.split(',').pop()?.split(' ');
+
+        if (!lastOffer) return undefined;
+
+        const winnerName = lastOffer[0];
+        const winnerPrice = lastOffer.pop();
+
+        const winner = (await usersService.getUserByUserName(winnerName)).data as UserDTO;
+
+        const result =
+        {
+            winnerID: winner.userid,
+            winnerPrice
+        };
+
+        return result;
     }
 }
 
