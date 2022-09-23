@@ -24,6 +24,16 @@ class AuctionsController extends Controller
         this.callService(res, auctionsService.createAuction.bind(auctionsService), req.body);
     }
 
+    async isAuctionOpened (req: Request, res: Response)
+    {
+        this.callService(res, auctionsService.isAuctionOpened.bind(auctionsService), req.params.name);
+    }
+
+    async isAuctionClosed (req: Request, res: Response)
+    {
+        this.callService(res, auctionsService.isAuctionClosed.bind(auctionsService), req.params.name);
+    }
+
     async updateAuction (req: Request, res: Response)
     {
         this.callService(res, auctionsService.updateAuction.bind(auctionsService), req.body);

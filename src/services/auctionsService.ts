@@ -38,11 +38,32 @@ class AuctionsService extends Service
         auctionsPropertiesValidator.validateAll(auction);
         const existentAuction = await auctionsDAO.getAuctionByName(auction.name);
 
-        if (existentAuction.length > 0) throw new UnauthorizedError('Auction already exists in database.');
+        if (existentAuction.length > 0) throw new UnauthorizedError(`Auction ${auction.name} already exists in database.`);
+        if (new Date(auction.open_at) <= new Date(auction.close_at)) throw new UnauthorizedError('Auction must have close date higher than open date.');
 
         const result = await auctionsDAO.createAuction(auction);
 
         return this.serviceResponseBuilder(result, `Error when inserting auction ${auction.name} in database.`, 201);
+    }
+
+    async isAuctionOpened (name: string)
+    {
+        auctionsPropertiesValidator.validateAuctionName(name);
+        const existentAuction = await auctionsDAO.getAuctionByName(name);
+
+        const result = new Date() >= new Date(existentAuction[0].open_at);
+
+        return this.serviceResponseBuilder([ result ], '');
+    }
+
+    async isAuctionClosed (name: string)
+    {
+        auctionsPropertiesValidator.validateAuctionName(name);
+        const existentAuction = await auctionsDAO.getAuctionByName(name);
+
+        const result = new Date() >= new Date(existentAuction[0].close_at);
+
+        return this.serviceResponseBuilder([ result ], '');
     }
 
     async updateAuction (auction: AuctionDTO)
@@ -52,7 +73,7 @@ class AuctionsService extends Service
 
         const existentAuction = (await this.getAuctionByID(auction.auction_id)).data as AuctionDTO;
 
-        if (existentAuction.closed_at) throw new UnauthorizedError('Closed auction cannot be updated.');
+        if (existentAuction.winner_id) throw new UnauthorizedError('Closed auction cannot be updated.');
         if (new Date() >= new Date(existentAuction.open_at)) throw new UnauthorizedError('Auction is already opened, not allowed to update an already opened Auction.');
 
         const result = await auctionsDAO.updateAuction(auction);
@@ -64,7 +85,7 @@ class AuctionsService extends Service
     {
         const existentAuction = (await this.getAuctionByName(name)).data as AuctionDTO;
 
-        if (existentAuction.closed_at) throw new UnauthorizedError('Closed auction cannot be deleted.');
+        if (existentAuction.winner_id) throw new UnauthorizedError('Closed auction cannot be deleted.');
         if (new Date() >= new Date(existentAuction.open_at)) throw new UnauthorizedError('Auction is already opened, not allowed to delete an already opened Auction.');
 
         const result = await auctionsDAO.deleteAuction(existentAuction.auction_id as string);
@@ -72,18 +93,18 @@ class AuctionsService extends Service
         return this.serviceResponseBuilder(result, `Error when deleting auction ${name} in database.`);
     }
 
-    async closeAuction (param: { auctionName: string, winnerName: string, final_price: string })
+    async closeAuction (param: { auctionName: string, winnerName: string, winnerPrice: string })
     {
         auctionsPropertiesValidator.validateAuctionName(param.auctionName);
-        auctionsPropertiesValidator.validateAuctionFinalPrice(param.final_price);
+        auctionsPropertiesValidator.validateAuctionWinnerPrice(param.winnerPrice);
 
         const winner = (await usersService.getUserByUserName(param.winnerName)).data as UserDTO;
         const existentAuction = (await this.getAuctionByName(param.auctionName)).data as AuctionDTO;
 
+        if (existentAuction.winner_id) throw new UnauthorizedError('Closed auction cannot be closed again.');
         if (new Date() < new Date(existentAuction.open_at)) throw new UnauthorizedError('Only opened auctions can be closed.');
-        if (existentAuction.closed_at) throw new UnauthorizedError('Closed auction cannot be closed again.');
 
-        const result = await auctionsDAO.closeAuction(param.auctionName, winner.userid as string, param.final_price);
+        const result = await auctionsDAO.closeAuction(param.auctionName, winner.userid as string, param.winnerPrice);
 
         return this.serviceResponseBuilder(result, `Error when closing auction ${param.auctionName} in database.`);
     }

@@ -5,12 +5,12 @@ import { v4 as uuiv4 } from 'uuid';
 
 class AuctionsDAO extends DAO
 {
-    getAuctionByID (auction_id: string)
+    getAuctionByID (auctionID: string)
     {
         const sql = `SELECT *
                     FROM auctions WHERE auction_id = $1`;
 
-        return this.executeSQL<AuctionDTO>(sql, [ auction_id ]);
+        return this.executeSQL<AuctionDTO>(sql, [ auctionID ]);
     }
 
     getAuctionByName (name: string)
@@ -37,10 +37,13 @@ class AuctionsDAO extends DAO
                                     description, 
                                     photo, 
                                     initial_price, 
-                                    duration, 
                                     open_at,
-                                    created_at
+                                    created_at,
+                                    close_at
                                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
+
+        const date = new Date().toISOString().split('T');
+        const createdAt = `${date[0]} ${date[1].split('.')[0]}`;
 
         return this.executeSQL<AuctionDTO>(sql,
             [
@@ -49,9 +52,9 @@ class AuctionsDAO extends DAO
                 auction.description,
                 auction.photo,
                 auction.initial_price,
-                auction.duration,
                 auction.open_at,
-                new Date().toISOString().split('T')[0],
+                createdAt,
+                auction.close_at
             ]);
     }
 
@@ -62,12 +65,15 @@ class AuctionsDAO extends DAO
                                     description, 
                                     photo, 
                                     initial_price, 
-                                    duration, 
                                     open_at,
-                                    updated_at
+                                    updated_at,
+                                    close_at
                                 ) = ($1, $2, $3, $4, $5, $6, $7)
                                 WHERE auction_id = $8 
                                 RETURNING *`;
+
+        const date = new Date().toISOString().split('T');
+        const updatedAt = `${date[0]} ${date[1].split('.')[0]}`;
 
         return this.executeSQL<AuctionDTO>(sql,
             [
@@ -75,29 +81,28 @@ class AuctionsDAO extends DAO
                 auction.description,
                 auction.photo,
                 auction.initial_price,
-                auction.duration,
                 auction.open_at,
-                new Date().toISOString().split('T')[0],
+                updatedAt,
+                auction.close_at,
                 auction.auction_id
             ]);
     }
 
-    deleteAuction (auction_id: string)
+    deleteAuction (auctionID: string)
     {
         const sql = 'DELETE FROM auctions WHERE auction_id = $1 RETURNING *';
 
-        return this.executeSQL<AuctionDTO>(sql, [ auction_id ]);
+        return this.executeSQL<AuctionDTO>(sql, [ auctionID ]);
     }
 
-    closeAuction (auctionName: string, winner_id: string, final_price: string)
+    closeAuction (auctionName: string, winnerID: string, winnerPrice: string)
     {
-        const sql = 'UPDATE auctions SET (winner_id, final_price, closed_at) = ($1, $2, $3) WHERE name = $4 RETURNING *';
+        const sql = 'UPDATE auctions SET (winner_id, winner_price) = ($1, $2) WHERE name = $3 RETURNING *';
 
         return this.executeSQL<AuctionDTO>(sql,
             [
-                winner_id,
-                final_price,
-                new Date().toISOString().split('T')[0],
+                winnerID,
+                winnerPrice,
                 auctionName
             ]);
     }

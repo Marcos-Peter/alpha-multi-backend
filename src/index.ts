@@ -1,9 +1,9 @@
-import { WebSocketServer } from './websocket/websocketServer';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import { routes } from './routes/routesList';
+import { websocketServer } from './websocket/websocketServer';
 
 dotenv.config();
 
@@ -23,5 +23,4 @@ app.listen(port, () =>
     console.log(`Alpha Multi Server is running at https://localhost:${port}`);
 });
 
-const websocketServer = new WebSocketServer(Number(process.env.PORT_WEBSOCKET) || 8080);
 websocketServer.init();

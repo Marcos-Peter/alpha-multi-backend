@@ -14,13 +14,13 @@ class AuctionsPropertiesValidator extends PropertiesValidator
             this.validateAuctionDescription.bind(this),
             this.validateAuctionPhoto.bind(this),
             this.validateAuctionInitialPrice.bind(this),
-            this.validateAuctionDuration.bind(this),
-            this.validateAuctionOpenAt.bind(this)
+            this.validateAuctionDate.bind(this),
+            this.validateAuctionDate.bind(this)
         ];
 
     validateAll (auction: AuctionDTO)
     {
-        const params = [ auction.name, auction.description, auction.photo, auction.initial_price, auction.duration, auction.open_at ];
+        const params = [ auction.name, auction.description, auction.photo, auction.initial_price, auction.open_at, auction.close_at ];
 
         this.validateAllProperties(this.allValidators, params);
     }
@@ -61,33 +61,24 @@ class AuctionsPropertiesValidator extends PropertiesValidator
         }
     }
 
-    validateAuctionFinalPrice (final_price: string)
+    validateAuctionWinnerPrice (winnerPrice: string)
     {
-        if (!final_price)
+        if (!winnerPrice)
         {
             throw new ValidationError(
                 'Favor providenciar um preço final para o leilão.');
         }
     }
 
-    validateAuctionDuration (duration: number)
+    validateAuctionDate (date: string)
     {
-        if (!duration || (typeof duration !== 'number'))
+        if (!date || !this.auctionOpenAtDateRegex.test(date))
         {
             throw new ValidationError(
-                'Favor providenciar uma duração para o leilão, a duração deve ter um valor numérico representando os segundos que o leilão durará.');
-        }
-    }
-
-    validateAuctionOpenAt (open_at: string)
-    {
-        if (!open_at || !this.auctionOpenAtDateRegex.test(open_at))
-        {
-            throw new ValidationError(
-                'Favor providenciar uma data de abertura para o leilão, a data de abertura deve ter o formato "yyyy-mm-dd".');
+                'Favor providenciar uma data de abertura/fechamento para o leilão, a data de abertura deve ter o formato "yyyy-mm-dd 00:00:00".');
         }
 
-        if (!(new Date(open_at).getTime())) throw new ValidationError('Data passada é inválida.');
+        if (!(new Date(date).getTime())) throw new ValidationError('Data passada é inválida.');
     }
 }
 

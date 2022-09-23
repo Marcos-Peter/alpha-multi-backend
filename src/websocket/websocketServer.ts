@@ -1,4 +1,5 @@
 import { Server, WebSocket } from 'ws';
+import { auctionsService } from '../services/auctionsService';
 
 interface ClientMessage
 {
@@ -27,24 +28,76 @@ class WebSocketServer
     {
         this.ws = new WebSocket.Server({ port: this.port, path: '/ws' });
 
-        this.ws.on('connection', (ws, req) =>
+        this.ws.on('connection', async (ws, req) =>
         {
             const url = new URL(req.url as string, `http://${req.headers.host}`);
-            this.updateAuctionRooms(url.searchParams, ws);
+            const auctionName = url.searchParams.get('auctionName') as string;
 
-            ws.on('message', (data) =>
+            const isOpened = await this.isAuctionOpened(auctionName);
+
+            if (!isOpened)
             {
-                this.broadCast(JSON.parse(data as any) as ClientMessage);
+                ws.close();
+
+                return;
+            }
+
+            this.updateAuctionRooms(auctionName, ws);
+
+            ws.on('message', async (data) =>
+            {
+                const message = JSON.parse(data as any) as ClientMessage;
+
+                const isClosed = await this.isAuctionClosed(message.auctionName);
+
+                if (isClosed)
+                {
+                    ws.close();
+
+                    return;
+                }
+
+                this.broadCast(message);
             });
         });
 
         console.log(`Alpha Multi Websocket server is running on port ${this.port}`);
     }
 
-    private updateAuctionRooms (params: URLSearchParams, ws: WebSocket)
+    private async isAuctionOpened (auctionName: string)
     {
-        const auctionName = params.get('auctionName') as string;
+        let isOpened = false;
 
+        try
+        {
+            isOpened = (await auctionsService.isAuctionOpened(auctionName)).data as boolean;
+        }
+        catch (error)
+        {
+            console.log(`Error when checking if auction ${auctionName} is opened: ${error}`);
+        }
+
+        return isOpened;
+    }
+
+    private async isAuctionClosed (auctionName: string)
+    {
+        let isClosed = false;
+
+        try
+        {
+            isClosed = (await auctionsService.isAuctionClosed(auctionName)).data as boolean;
+        }
+        catch (error)
+        {
+            console.log(`Error when checking if auction ${auctionName} is closed: ${error}`);
+        }
+
+        return isClosed;
+    }
+
+    private updateAuctionRooms (auctionName: string, ws: WebSocket)
+    {
         if (Object.prototype.hasOwnProperty.call(this.auctionRooms, auctionName))
         {
             this.auctionRooms[auctionName].push(ws);
@@ -61,4 +114,5 @@ class WebSocketServer
     }
 }
 
-export { WebSocketServer };
+const websocketServer = new WebSocketServer(Number(process.env.PORT_WEBSOCKET) || 8080);
+export { websocketServer };
