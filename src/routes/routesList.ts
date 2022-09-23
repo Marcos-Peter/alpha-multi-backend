@@ -126,7 +126,7 @@ class Routes
     {
         const isAuctionOpenedRoute = express.Router();
 
-        isAuctionOpenedRoute.get('/', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.isAuctionOpened.bind(auctionsController));
+        isAuctionOpenedRoute.get('/:name', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.isAuctionOpened.bind(auctionsController));
 
         return isAuctionOpenedRoute;
     }
@@ -135,7 +135,7 @@ class Routes
     {
         const isAuctionClosedRoute = express.Router();
 
-        isAuctionClosedRoute.get('/', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.isAuctionClosed.bind(auctionsController));
+        isAuctionClosedRoute.get('/:name', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.isAuctionClosed.bind(auctionsController));
 
         return isAuctionClosedRoute;
     }

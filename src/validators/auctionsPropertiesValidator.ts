@@ -6,7 +6,7 @@ class AuctionsPropertiesValidator extends PropertiesValidator
 {
     private readonly auctionNameRegex = /^[ A-Za-z0-9_-]{3,15}$/;
     private readonly auctionDescriptionLength = 10;
-    private readonly auctionOpenAtDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    private readonly auctionDateRegex = /([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})/;
 
     private readonly allValidators =
         [
@@ -14,8 +14,8 @@ class AuctionsPropertiesValidator extends PropertiesValidator
             this.validateAuctionDescription.bind(this),
             this.validateAuctionPhoto.bind(this),
             this.validateAuctionInitialPrice.bind(this),
-            this.validateAuctionDate.bind(this),
-            this.validateAuctionDate.bind(this)
+            this.validateAuctionOpenAt.bind(this),
+            this.validateAuctionCloseAt.bind(this)
         ];
 
     validateAll (auction: AuctionDTO)
@@ -66,19 +66,30 @@ class AuctionsPropertiesValidator extends PropertiesValidator
         if (!winnerPrice)
         {
             throw new ValidationError(
-                'Favor providenciar um preço final para o leilão.');
+                'Favor providenciar o preço do ganhador para o leilão.');
         }
     }
 
-    validateAuctionDate (date: string)
+    validateAuctionOpenAt (openAt: string)
     {
-        if (!date || !this.auctionOpenAtDateRegex.test(date))
+        if (!openAt || !this.auctionDateRegex.test(openAt))
         {
             throw new ValidationError(
-                'Favor providenciar uma data de abertura/fechamento para o leilão, a data de abertura deve ter o formato "yyyy-mm-dd 00:00:00".');
+                'Favor providenciar uma data de abertura para o leilão, a data de abertura deve ter o formato "yyyy-mm-dd 00:00:00".');
         }
 
-        if (!(new Date(date).getTime())) throw new ValidationError('Data passada é inválida.');
+        if (!(new Date(openAt).getTime())) throw new ValidationError('Data passada é inválida.');
+    }
+
+    validateAuctionCloseAt (closeAt: string)
+    {
+        if (!closeAt || !this.auctionDateRegex.test(closeAt))
+        {
+            throw new ValidationError(
+                'Favor providenciar uma data de fechamento para o leilão, a data de fechamento deve ter o formato "yyyy-mm-dd 00:00:00".');
+        }
+
+        if (!(new Date(closeAt).getTime())) throw new ValidationError('Data passada é inválida.');
     }
 }
 

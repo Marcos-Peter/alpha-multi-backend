@@ -1,6 +1,7 @@
 /* eslint-disable newline-per-chained-call */
 import { AuctionDTO } from '../../models/DTOs/AuctionDTO';
 import { DAO } from './DAO';
+import { getDateWithoutTimeZone } from '../../utils/getDateWithoutTimeZone';
 import { v4 as uuiv4 } from 'uuid';
 
 class AuctionsDAO extends DAO
@@ -42,7 +43,8 @@ class AuctionsDAO extends DAO
                                     close_at
                                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
 
-        const date = new Date().toISOString().split('T');
+        const now = getDateWithoutTimeZone();
+        const date = now.toISOString().split('T');
         const createdAt = `${date[0]} ${date[1].split('.')[0]}`;
 
         return this.executeSQL<AuctionDTO>(sql,
@@ -72,7 +74,8 @@ class AuctionsDAO extends DAO
                                 WHERE auction_id = $8 
                                 RETURNING *`;
 
-        const date = new Date().toISOString().split('T');
+        const now = getDateWithoutTimeZone();
+        const date = now.toISOString().split('T');
         const updatedAt = `${date[0]} ${date[1].split('.')[0]}`;
 
         return this.executeSQL<AuctionDTO>(sql,

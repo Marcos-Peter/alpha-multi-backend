@@ -6,6 +6,7 @@ import { UserDTO } from '../models/DTOs/UserDTO';
 import { ValidationError } from '../errors/ValidationError';
 import { auctionsDAO } from '../repositories/DAOs/auctionsDAO';
 import { auctionsPropertiesValidator } from '../validators/auctionsPropertiesValidator';
+import { getDateWithoutTimeZone } from '../utils/getDateWithoutTimeZone';
 import { usersService } from './usersService';
 
 class AuctionsService extends Service
@@ -39,7 +40,7 @@ class AuctionsService extends Service
         const existentAuction = await auctionsDAO.getAuctionByName(auction.name);
 
         if (existentAuction.length > 0) throw new UnauthorizedError(`Auction ${auction.name} already exists in database.`);
-        if (new Date(auction.open_at) <= new Date(auction.close_at)) throw new UnauthorizedError('Auction must have close date higher than open date.');
+        if (getDateWithoutTimeZone(auction.open_at) >= getDateWithoutTimeZone(auction.close_at)) throw new UnauthorizedError('Auction must have close date higher than open date.');
 
         const result = await auctionsDAO.createAuction(auction);
 
@@ -48,22 +49,22 @@ class AuctionsService extends Service
 
     async isAuctionOpened (name: string)
     {
-        auctionsPropertiesValidator.validateAuctionName(name);
-        const existentAuction = await auctionsDAO.getAuctionByName(name);
+        const existentAuction = (await this.getAuctionByName(name)).data as AuctionDTO;
 
-        const result = new Date() >= new Date(existentAuction[0].open_at);
+        const now = getDateWithoutTimeZone();
+        const result = now >= getDateWithoutTimeZone(existentAuction.open_at) && now < getDateWithoutTimeZone(existentAuction.close_at);
 
-        return this.serviceResponseBuilder([ result ], '');
+        return this.serviceResponseBuilder([ String(result) ], '');
     }
 
     async isAuctionClosed (name: string)
     {
-        auctionsPropertiesValidator.validateAuctionName(name);
-        const existentAuction = await auctionsDAO.getAuctionByName(name);
+        const existentAuction = (await this.getAuctionByName(name)).data as AuctionDTO;
 
-        const result = new Date() >= new Date(existentAuction[0].close_at);
+        const now = getDateWithoutTimeZone();
+        const result = now >= getDateWithoutTimeZone(existentAuction.close_at);
 
-        return this.serviceResponseBuilder([ result ], '');
+        return this.serviceResponseBuilder([ String(result) ], '');
     }
 
     async updateAuction (auction: AuctionDTO)
@@ -74,7 +75,9 @@ class AuctionsService extends Service
         const existentAuction = (await this.getAuctionByID(auction.auction_id)).data as AuctionDTO;
 
         if (existentAuction.winner_id) throw new UnauthorizedError('Closed auction cannot be updated.');
-        if (new Date() >= new Date(existentAuction.open_at)) throw new UnauthorizedError('Auction is already opened, not allowed to update an already opened Auction.');
+
+        const now = getDateWithoutTimeZone();
+        if (now >= getDateWithoutTimeZone(existentAuction.open_at)) throw new UnauthorizedError('Auction is already opened, not allowed to update an already opened Auction.');
 
         const result = await auctionsDAO.updateAuction(auction);
 
@@ -86,7 +89,9 @@ class AuctionsService extends Service
         const existentAuction = (await this.getAuctionByName(name)).data as AuctionDTO;
 
         if (existentAuction.winner_id) throw new UnauthorizedError('Closed auction cannot be deleted.');
-        if (new Date() >= new Date(existentAuction.open_at)) throw new UnauthorizedError('Auction is already opened, not allowed to delete an already opened Auction.');
+
+        const now = getDateWithoutTimeZone();
+        if (now >= getDateWithoutTimeZone(existentAuction.open_at)) throw new UnauthorizedError('Auction is already opened, not allowed to delete an already opened Auction.');
 
         const result = await auctionsDAO.deleteAuction(existentAuction.auction_id as string);
 
@@ -102,7 +107,9 @@ class AuctionsService extends Service
         const existentAuction = (await this.getAuctionByName(param.auctionName)).data as AuctionDTO;
 
         if (existentAuction.winner_id) throw new UnauthorizedError('Closed auction cannot be closed again.');
-        if (new Date() < new Date(existentAuction.open_at)) throw new UnauthorizedError('Only opened auctions can be closed.');
+
+        const now = getDateWithoutTimeZone();
+        if (now < getDateWithoutTimeZone(existentAuction.close_at)) throw new UnauthorizedError('Auctions can be closed only after time has passed due close_at date.');
 
         const result = await auctionsDAO.closeAuction(param.auctionName, winner.userid as string, param.winnerPrice);
 
