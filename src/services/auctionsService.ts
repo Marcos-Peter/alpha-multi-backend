@@ -9,6 +9,7 @@ import { auctionsDAO } from '../repositories/DAOs/auctionsDAO';
 import { auctionsPropertiesValidator } from '../validators/auctionsPropertiesValidator';
 import { getDateWithoutTimeZone } from '../utils/getDateWithoutTimeZone';
 import { usersService } from './usersService';
+import { websocketServer } from '../websocket/websocketServer';
 
 class AuctionsService extends Service
 {
@@ -66,6 +67,24 @@ class AuctionsService extends Service
         const result = now >= getDateWithoutTimeZone(existentAuction.close_at);
 
         return this.serviceResponseBuilder([ String(result) ], '');
+    }
+
+    async getAuctionData (name: string)
+    {
+        const isOpened = (await this.isAuctionOpened(name)).data as string;
+        if (isOpened === 'false') throw new UnauthorizedError('Only opened auctions have data to share.');
+
+        const existentAuction = (await this.getAuctionByName(name)).data as AuctionDTO;
+
+        const auctionData = websocketServer.getAuctionData(existentAuction.auction_id as string);
+        if (!auctionData) return this.serviceResponseBuilder([], 'This auction does not have clients connected or any chat log.');
+
+        const chatLog = auctionData.chatLog;
+
+        // TODO alguma coisa está fazendo ter conexões duplicadas, talvez front esteja mandando duas vezes?
+        const numberOfClientsConnected = auctionData.auctionClients.length / 2;
+
+        return this.serviceResponseBuilder([ { chatLog, numberOfClientsConnected } ], '');
     }
 
     async updateAuction (auction: AuctionDTO)

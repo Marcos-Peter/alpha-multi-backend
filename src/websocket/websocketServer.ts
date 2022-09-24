@@ -73,6 +73,11 @@ class WebSocketServer
         console.log(`Alpha Multi Websocket server is running on port ${this.port}`);
     }
 
+    getAuctionData (auctionID: string)
+    {
+        if (Object.prototype.hasOwnProperty.call(this.auctionRooms, auctionID)) return this.auctionRooms[auctionID];
+    }
+
     private async isAuctionOpened (auctionID: string)
     {
         let isOpened = false;
