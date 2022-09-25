@@ -19,6 +19,7 @@ class Routes
         app.use('/updateAuction', this.updateAuction());
         app.use('/deleteAuction', this.deleteAuction());
         app.use('/closeAuction', this.closeAuction());
+        app.use('/getAuctionData', this.getAuctionData());
         app.use('/isAuctionOpened', this.isAuctionOpened());
         app.use('/isAuctionClosed', this.isAuctionClosed());
     }
@@ -117,7 +118,7 @@ class Routes
     {
         const closeAuctionRoute = express.Router();
 
-        closeAuctionRoute.put('/', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.closeAuction.bind(auctionsController));
+        closeAuctionRoute.put('/:name', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.closeAuction.bind(auctionsController));
 
         return closeAuctionRoute;
     }
@@ -138,6 +139,15 @@ class Routes
         isAuctionClosedRoute.get('/:name', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.isAuctionClosed.bind(auctionsController));
 
         return isAuctionClosedRoute;
+    }
+
+    private getAuctionData ()
+    {
+        const getAuctionData = express.Router();
+
+        getAuctionData.get('/:name', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.getAuctionData.bind(auctionsController));
+
+        return getAuctionData;
     }
 }
 

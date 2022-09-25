@@ -1,8 +1,8 @@
 function getDateWithoutTimeZone (date?: string)
 {
-    const timezoneOffset = new Date().getTimezoneOffset();
+    const timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
     const moment = date ? new Date(date).getTime() : Date.now();
-    const now = new Date(moment - (timezoneOffset * 60 * 1000));
+    const now = new Date(moment - timezoneOffset);
 
     return now;
 }

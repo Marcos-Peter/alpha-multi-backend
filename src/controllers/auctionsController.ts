@@ -39,6 +39,11 @@ class AuctionsController extends Controller
         this.callService(res, auctionsService.updateAuction.bind(auctionsService), req.body);
     }
 
+    async getAuctionData (req: Request, res: Response)
+    {
+        this.callService(res, auctionsService.getAuctionData.bind(auctionsService), req.params.name);
+    }
+
     async deleteAuction (req: Request, res: Response)
     {
         this.callService(res, auctionsService.deleteAuction.bind(auctionsService), req.params.name);
@@ -46,7 +51,7 @@ class AuctionsController extends Controller
 
     async closeAuction (req: Request, res: Response)
     {
-        this.callService(res, auctionsService.closeAuction.bind(auctionsService), req.body);
+        this.callService(res, auctionsService.closeAuction.bind(auctionsService), req.params.name);
     }
 }
 
