@@ -2,6 +2,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import { TimerController } from './controllers/TimerController';
 import { routes } from './routes/routesList';
 import { websocketServer } from './websocket/websocketServer';
 
@@ -24,3 +25,8 @@ app.listen(port, () =>
 });
 
 websocketServer.init();
+
+const timerController = new TimerController(() =>
+{
+    console.log('Test');
+}, 1000);
