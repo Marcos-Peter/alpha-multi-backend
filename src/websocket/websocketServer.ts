@@ -54,11 +54,6 @@ class WebSocketServer
                 const message = JSON.parse(data as any) as ClientMessage;
                 this.broadCast(message);
             });
-
-            ws.on('close', (code: number, reason: Buffer) =>
-            {
-                console.log(code, reason);
-            });
         });
 
         console.log(`Alpha Multi Websocket server is running on port ${this.port}`);

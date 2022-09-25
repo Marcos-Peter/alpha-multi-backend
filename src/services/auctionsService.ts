@@ -81,10 +81,18 @@ class AuctionsService extends Service
 
         const chatLog = auctionData.chatLog;
 
-        // TODO alguma coisa está fazendo ter conexões duplicadas, talvez front esteja mandando duas vezes?
-        const numberOfClientsConnected = auctionData.auctionClients.length / 2;
+        const numberOfClientsConnected = auctionData.auctionClients.length;
 
         return this.serviceResponseBuilder([ { chatLog, numberOfClientsConnected } ], '');
+    }
+
+    async getAuctionsUserWon (userName: string)
+    {
+        const winner = (await usersService.getUserByUserName(userName)).data as UserDTO;
+
+        const result = await auctionsDAO.getAuctionsUserWon(winner.userid as string);
+
+        return this.serviceResponseBuilder(result, `Error when retrieving auctions that user ${userName} won from database.`);
     }
 
     async updateAuction (auction: AuctionDTO)

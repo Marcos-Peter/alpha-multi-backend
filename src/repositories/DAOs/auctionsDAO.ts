@@ -30,6 +30,14 @@ class AuctionsDAO extends DAO
         return this.executeSQL<AuctionDTO>(sql, []);
     }
 
+    getAuctionsUserWon (winner_id: string)
+    {
+        const sql = `SELECT *
+                     FROM auctions WHERE winner_id = $1`;
+
+        return this.executeSQL<AuctionDTO>(sql, [ winner_id ]);
+    }
+
     createAuction (auction: AuctionDTO)
     {
         const sql = `INSERT INTO auctions (

@@ -20,6 +20,7 @@ class Routes
         app.use('/deleteAuction', this.deleteAuction());
         app.use('/closeAuction', this.closeAuction());
         app.use('/getAuctionData', this.getAuctionData());
+        app.use('/getAuctionsUserWon', this.getAuctionsUserWon());
         app.use('/isAuctionOpened', this.isAuctionOpened());
         app.use('/isAuctionClosed', this.isAuctionClosed());
     }
@@ -148,6 +149,15 @@ class Routes
         getAuctionData.get('/:name', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.getAuctionData.bind(auctionsController));
 
         return getAuctionData;
+    }
+
+    private getAuctionsUserWon ()
+    {
+        const getAuctionsUserWon = express.Router();
+
+        getAuctionsUserWon.get('/', authToken.verifyTokenMiddleWare.bind(authToken), auctionsController.getAuctionsUserWon.bind(auctionsController));
+
+        return getAuctionsUserWon;
     }
 }
 

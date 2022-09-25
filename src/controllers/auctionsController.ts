@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Controller } from './Controller';
 import { auctionsService } from '../services/auctionsService';
+import { authToken } from '../middlewares/AuthToken';
 
 class AuctionsController extends Controller
 {
@@ -42,6 +43,12 @@ class AuctionsController extends Controller
     async getAuctionData (req: Request, res: Response)
     {
         this.callService(res, auctionsService.getAuctionData.bind(auctionsService), req.params.name);
+    }
+
+    async getAuctionsUserWon (req: Request, res: Response)
+    {
+        req.params.name = authToken.verifyToken(req.cookies.bearer).payload;
+        this.callService(res, auctionsService.getAuctionsUserWon.bind(auctionsService), req.params.name);
     }
 
     async deleteAuction (req: Request, res: Response)
