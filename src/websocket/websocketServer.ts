@@ -1,7 +1,5 @@
 import { Server, WebSocket } from 'ws';
-import { AuctionDTO } from '../models/DTOs/AuctionDTO';
 import { RedisConnection } from '../redis/RedisConnection';
-import { auctionsService } from '../services/auctionsService';
 
 interface ClientMessage
 {
@@ -10,10 +8,16 @@ interface ClientMessage
     message: string;
 }
 
+interface AuctionClients
+{
+    userName: string;
+    websocket: WebSocket;
+}
+
 interface AuctionData
 {
     chatLog: string[];
-    auctionClients: WebSocket[];
+    auctionClients: AuctionClients[];
 }
 
 interface AuctionRoom
@@ -24,7 +28,7 @@ interface AuctionRoom
 class WebSocketServer
 {
     private readonly port;
-    private ws: Server<WebSocket> | undefined;
+    private wsServer: Server<WebSocket> | undefined;
     private readonly auctionRooms = {} as AuctionRoom;
 
     constructor (port: number)
@@ -35,38 +39,25 @@ class WebSocketServer
 
     init ()
     {
-        this.ws = new WebSocket.Server({ port: this.port, path: '/ws' });
+        this.wsServer = new WebSocket.Server({ port: this.port, path: '/ws' });
 
-        this.ws.on('connection', async (ws, req) =>
+        this.wsServer.on('connection', (ws, req) =>
         {
             const url = new URL(req.url as string, `http://${req.headers.host}`);
             const auctionID = url.searchParams.get('auctionID') as string;
+            const userName = url.searchParams.get('userName') as string;
 
-            const isOpened = await this.isAuctionOpened(auctionID);
+            this.updateAuctionRooms(auctionID, userName, ws);
 
-            if (!isOpened)
-            {
-                ws.close();
-
-                return;
-            }
-
-            this.updateAuctionRooms(auctionID, ws);
-
-            ws.on('message', async (data) =>
+            ws.on('message', (data) =>
             {
                 const message = JSON.parse(data as any) as ClientMessage;
-
-                const isClosed = await this.isAuctionClosed(message.auctionID);
-
-                if (isClosed)
-                {
-                    ws.close();
-
-                    return;
-                }
-
                 this.broadCast(message);
+            });
+
+            ws.on('close', (code: number, reason: Buffer) =>
+            {
+                console.log(code, reason);
             });
         });
 
@@ -78,50 +69,25 @@ class WebSocketServer
         if (Object.prototype.hasOwnProperty.call(this.auctionRooms, auctionID)) return this.auctionRooms[auctionID];
     }
 
-    private async isAuctionOpened (auctionID: string)
-    {
-        let isOpened = false;
-
-        try
-        {
-            const existentAuction = (await auctionsService.getAuctionByID(auctionID)).data as AuctionDTO;
-            isOpened = (await auctionsService.isAuctionOpened(existentAuction.name)).data as string === 'true';
-        }
-        catch (error)
-        {
-            console.log(`Error when checking if auction ${auctionID} is opened: ${error}`);
-        }
-
-        return isOpened;
-    }
-
-    private async isAuctionClosed (auctionID: string)
-    {
-        let isClosed = false;
-
-        try
-        {
-            const existentAuction = (await auctionsService.getAuctionByID(auctionID)).data as AuctionDTO;
-            isClosed = (await auctionsService.isAuctionClosed(existentAuction.name)).data as string === 'true';
-        }
-        catch (error)
-        {
-            console.log(`Error when checking if auction ${auctionID} is closed: ${error}`);
-        }
-
-        return isClosed;
-    }
-
-    private updateAuctionRooms (auctionID: string, ws: WebSocket)
+    private updateAuctionRooms (auctionID: string, userName: string, ws: WebSocket)
     {
         if (Object.prototype.hasOwnProperty.call(this.auctionRooms, auctionID))
         {
-            this.auctionRooms[auctionID].auctionClients.push(ws);
+            const existentUserIndex = this.auctionRooms[auctionID].auctionClients.findIndex((client) => client.userName === userName);
+
+            if (existentUserIndex !== -1)
+            {
+                this.auctionRooms[auctionID].auctionClients[existentUserIndex] = { userName, websocket: ws };
+
+                return;
+            }
+
+            this.auctionRooms[auctionID].auctionClients.push({ userName, websocket: ws });
 
             return;
         }
 
-        const auctionData = { chatLog: [], auctionClients: [ ws ] } as AuctionData;
+        const auctionData = { chatLog: [], auctionClients: [ { userName, websocket: ws } ] } as AuctionData;
         this.auctionRooms[auctionID] = auctionData;
     }
 
@@ -134,7 +100,7 @@ class WebSocketServer
 
         RedisConnection.redisConn.set(clientMessage.auctionID, chatLog);
 
-        for (const client of this.auctionRooms[clientMessage.auctionID].auctionClients) client.send(message);
+        for (const client of this.auctionRooms[clientMessage.auctionID].auctionClients) client.websocket.send(message);
     }
 }
 
