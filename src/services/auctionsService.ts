@@ -91,6 +91,7 @@ class AuctionsService extends Service
         const winner = (await usersService.getUserByUserName(userName)).data as UserDTO;
 
         const result = await auctionsDAO.getAuctionsUserWon(winner.userid as string);
+        if (typeof result === 'object') return this.serviceResponseBuilder([ result ], `Error when retrieving auctions that user ${userName} won from database.`);
 
         return this.serviceResponseBuilder(result, `Error when retrieving auctions that user ${userName} won from database.`);
     }
