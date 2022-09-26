@@ -18,7 +18,7 @@ class Routes
         app.use('/createAuction', this.createAuction());
         app.use('/updateAuction', this.updateAuction());
         app.use('/deleteAuction', this.deleteAuction());
-        app.use('/closeAuction', this.closeAuction());
+        // app.use('/closeAuction', this.closeAuction());
         app.use('/getAuctionData', this.getAuctionData());
         app.use('/getAuctionsUserWon', this.getAuctionsUserWon());
         app.use('/isAuctionOpened', this.isAuctionOpened());

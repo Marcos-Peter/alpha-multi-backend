@@ -66,6 +66,13 @@ class AuctionsService extends Service
         const now = getDateWithoutTimeZone();
         const result = now >= getDateWithoutTimeZone(existentAuction.close_at);
 
+        if (!existentAuction.winner_id)
+        {
+            const winnerData = await this.getWinnerData(existentAuction.auction_id as string);
+
+            await auctionsDAO.closeAuction(name, winnerData?.winnerID as string, winnerData?.winnerPrice as string);
+        }
+
         return this.serviceResponseBuilder([ String(result) ], '');
     }
 
