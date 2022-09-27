@@ -25,12 +25,12 @@ const portAdmin = 3334;
 
 app.listen(port, () =>
 {
-    console.log(`Alpha Multi Server is running at https://localhost:${port}`);
+    console.log(`Alpha Multi Server is running at port ${port}`);
 });
 
 appAdmin.listen(portAdmin, () =>
 {
-    console.log(`Alpha Multi FrontEnd Admin is running at https://localhost:${portAdmin}`);
+    console.log(`Alpha Multi FrontEnd Admin is running at port ${portAdmin}`);
 });
 
 websocketServer.init();
