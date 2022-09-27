@@ -13,7 +13,7 @@ class UsersService extends Service
     {
         const result = await usersDAO.getUserByID(userid);
 
-        return this.serviceResponseBuilder(result, `User ${userid} does not exist.`);
+        return this.serviceResponseBuilder(result, `Usuário ${userid} não existe.`);
     }
 
     async getUserByUserName (username: string)
@@ -21,14 +21,14 @@ class UsersService extends Service
         usersPropertiesValidator.validateUserName(username);
         const result = await usersDAO.getUserByUserName(username);
 
-        return this.serviceResponseBuilder(result, `User ${username} does not exist.`);
+        return this.serviceResponseBuilder(result, `Usuário ${username} não existe.`);
     }
 
     async getAllUsers ()
     {
         const result = await usersDAO.getAllUsers();
 
-        return this.serviceResponseBuilder(result, 'There are no users in database.');
+        return this.serviceResponseBuilder(result, 'Não há usuários no banco de dados.');
     }
 
     async createUser (user: UserDTO)
@@ -36,11 +36,11 @@ class UsersService extends Service
         usersPropertiesValidator.validateAll(user);
         const existentUser = await usersDAO.getUserByUserName(user.username);
 
-        if (existentUser.length > 0) throw new UnauthorizedError('User already exists in database.');
+        if (existentUser.length > 0) throw new UnauthorizedError('Nome de usuário existente.');
 
         const result = await usersDAO.createUser(user);
 
-        return this.serviceResponseBuilder(result, `Error when inserting user ${user.username} in database.`, 201);
+        return this.serviceResponseBuilder(result, `Erro ao inserir usuário ${user.username} no banco de dados.`, 201);
     }
 
     async changePassword (user: { username: string, currentPassword: string, newPassword: string })
@@ -55,7 +55,7 @@ class UsersService extends Service
 
         const result = await usersDAO.updateUserPassword(userid as string, user.newPassword);
 
-        return this.serviceResponseBuilder(result, `Error when updating ${user.username}'s password.`);
+        return this.serviceResponseBuilder(result, `Erro ao editar a senha do ${user.username}.`);
     }
 
     async authenticateUser (param: { req: Request, res: Response, user: UserDTO })
@@ -63,7 +63,7 @@ class UsersService extends Service
         usersPropertiesValidator.validateAll(param.user);
         const { username, password } = (await this.getUserByUserName(param.user.username)).data as UserDTO;
 
-        if (!passwordCryptography.comparePassword(param.user.password, password)) throw new UnauthorizedError('Password incorrect.');
+        if (!passwordCryptography.comparePassword(param.user.password, password)) throw new UnauthorizedError('Senha incorreta.');
 
         const token = authToken.generateToken(username);
         // TODO change to secure true
