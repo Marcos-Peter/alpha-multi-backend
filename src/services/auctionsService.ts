@@ -63,7 +63,7 @@ class AuctionsService extends Service
     {
         const result = { winnerName: '', winnerPrice: '' };
         const existentAuction = (await this.getAuctionByName(name)).data as AuctionDTO;
-
+        console.log(existentAuction);
         const now = getDateWithoutTimeZone();
         const isClosed = now >= getDateWithoutTimeZone(existentAuction.close_at);
 
