@@ -39,11 +39,11 @@ class WebSocketServer
 
     init ()
     {
-        this.wsServer = new WebSocket.Server({ port: this.port, path: '/ws' });
+        this.wsServer = new WebSocket.Server({ port: this.port, path: '/wss' });
 
         this.wsServer.on('connection', (ws, req) =>
         {
-            const url = new URL(req.url as string, `http://${req.headers.host}`);
+            const url = new URL(req.url as string, `https://${req.headers.host}`);
             const auctionID = url.searchParams.get('auctionID') as string;
             const userName = url.searchParams.get('userName') as string;
 
