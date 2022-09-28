@@ -15,7 +15,11 @@ const appAdmin = express();
 const privateKey  = fs.readFileSync('certificate.key', 'utf8');
 const certificate = fs.readFileSync('certificate.crt', 'utf8');
 
+const privateKeyAdmin  = fs.readFileSync('certificateAdmin.key', 'utf8');
+const certificateAdmin = fs.readFileSync('certificateAdmin.crt', 'utf8');
+
 const credentials = { key: privateKey, cert: certificate };
+const credentialsAdmin = { key: privateKeyAdmin, cert: certificateAdmin };
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
@@ -36,7 +40,7 @@ routes.initRoutes(appAdmin);
 const port = process.env.PORT || 3000;
 
 const httpsServer = https.createServer(credentials, app);
-const httpsServerAdmin = https.createServer(credentials, appAdmin);
+const httpsServerAdmin = https.createServer(credentialsAdmin, appAdmin);
 
 httpsServer.listen(port, () =>
 {
