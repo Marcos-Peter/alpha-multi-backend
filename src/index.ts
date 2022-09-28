@@ -22,7 +22,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.use(express.static(`${__dirname}/../alpha-multi-frontend/dist`));
-app.use('/assets', express.static(`${__dirname}/../alpha-multi-frontend/dist/assets`));
+console.log(`${__dirname}/../alpha-multi-frontend/dist`);
+// app.use('/assets', express.static(`${__dirname}/../alpha-multi-frontend/dist/assets`));
 // app.use(express.static(__dirname + "/../alpha-multi-frontend-admin/dist"))
 // app.use('/assets', express.static(__dirname + "/../alpha-multi-frontend-admin/dist"))
 
