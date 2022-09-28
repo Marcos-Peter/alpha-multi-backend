@@ -37,9 +37,9 @@ class WebSocketServer
         RedisConnection.redisConn.connect();
     }
 
-    init ()
+    init (httpsServer: any)
     {
-        this.wsServer = new WebSocket.Server({ port: this.port, path: '/wss' });
+        this.wsServer = new WebSocket.Server({ server: httpsServer, path: '/wss' });
 
         this.wsServer.on('connection', (ws, req) =>
         {

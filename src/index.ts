@@ -52,4 +52,4 @@ httpsServerAdmin.listen(3334, () =>
     console.log(`Alpha Multi Server Admin is running at port ${3334}`);
 });
 
-websocketServer.init();
+websocketServer.init(httpsServer);
