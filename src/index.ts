@@ -11,10 +11,10 @@ dotenv.config();
 
 const app = express();
 
-const privateKey  = fs.readFileSync('certificate.key', 'utf8');
-const certificate = fs.readFileSync('certificate.crt', 'utf8');
+// const privateKey  = fs.readFileSync('certificate.key', 'utf8');
+// const certificate = fs.readFileSync('certificate.crt', 'utf8');
 
-const credentials = { key: privateKey, cert: certificate };
+// const credentials = { key: privateKey, cert: certificate };
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
@@ -25,7 +25,7 @@ routes.initRoutes(app);
 
 const port = process.env.PORT || 3000;
 
-const httpsServer = https.createServer(credentials, app);
+const httpsServer = https.createServer(app);
 
 httpsServer.listen(port, () =>
 {
