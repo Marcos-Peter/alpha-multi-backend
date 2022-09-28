@@ -61,19 +61,26 @@ class AuctionsService extends Service
 
     async isAuctionClosed (name: string)
     {
+        const result = { winnerName: '', winnerPrice: '' };
         const existentAuction = (await this.getAuctionByName(name)).data as AuctionDTO;
 
         const now = getDateWithoutTimeZone();
-        const result = now >= getDateWithoutTimeZone(existentAuction.close_at);
+        const isClosed = now >= getDateWithoutTimeZone(existentAuction.close_at);
 
-        if (!existentAuction.winner_id)
+        if (isClosed)
         {
             const winnerData = await this.getWinnerData(existentAuction.auction_id as string);
 
             await auctionsDAO.closeAuction(name, winnerData?.winnerID as string, winnerData?.winnerPrice as string);
+
+            const userWinner = (await usersService.getUserByID(winnerData?.winnerID as string)).data as UserDTO;
+            result.winnerName = userWinner.username;
+            result.winnerPrice = winnerData?.winnerPrice as string;
+
+            return this.serviceResponseBuilder([ result ], '');
         }
 
-        return this.serviceResponseBuilder([ String(result) ], '');
+        return this.serviceResponseBuilder([], '');
     }
 
     async getAuctionData (name: string)
